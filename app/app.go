@@ -24,12 +24,18 @@ type Application interface {
 	Err() error
 }
 
+type Option struct {
+	DebugMode bool
+	NoBlank   bool
+}
+
 // app is used to store the current state of the application.
 type app struct {
 	book     *epub.Rootfile
 	pager    nav.PageNavigator
 	chapter  int
 	bookPath string
+	opt      *Option
 
 	err error
 
@@ -37,7 +43,7 @@ type app struct {
 }
 
 // NewApp creates an App
-func NewApp(b *epub.Rootfile, p nav.PageNavigator, bookpath string) Application {
+func NewApp(b *epub.Rootfile, bookpath string, opt *Option) Application {
 	logger.Info("Creating new app:")
 	logger.Info("Title:", b.Title)
 
@@ -49,7 +55,9 @@ func NewApp(b *epub.Rootfile, p nav.PageNavigator, bookpath string) Application 
 	logger.Info("Language:", b.Language)
 	logger.Info("Metadata:", b.Metadata)
 	bookpath = filepath.Dir(bookpath)
-	return &app{pager: p, book: b, exitSignal: make(chan bool, 1), bookPath: bookpath}
+	p := new(nav.Pager)
+	p.NotBlank = opt.NoBlank
+	return &app{pager: p, book: b, exitSignal: make(chan bool, 1), bookPath: bookpath, opt: opt}
 }
 
 // Run opens a book, renders its contents within the pager, and polls for

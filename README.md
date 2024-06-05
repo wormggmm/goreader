@@ -1,11 +1,17 @@
 # goreader
 ## **FORK From taylorskalyo/goreader**
 ### Changed
+#### 2024/06/05(#2)
+1. Add -nb (not blank line mode)
+2. Use the golang flag package instead os.Args
+
+#### 2024/06/05(#1)
 1. change Hot key for Next/Previous Chapter
 2. Automatically save/restore the last read place of each book
-   1. just save chapter and page scroll_Y, so if you changed view width....(fixing)
+   1. just save chapter and page scroll_Y 
    2. the mark is named .{BookTitle}.mark, in the same path with the book.
 3. add -d param for print debug log into file(same path with the book)
+
 
 
 Terminal epub reader
@@ -23,13 +29,16 @@ go install github.com/wormggmm/goreader
 ## Usage
 
 ``` shell
-goreader [epub_file]
+goreader [-h] [-d] [-nb] [epub_file]
 
 # help print
 goreader -h
 
 # print debug info to log file, same path of the book
 goreader -d [epub_file]
+
+# none blank line mode
+goreader -nb [epub_file]
 ```
 
 ### Keybindings

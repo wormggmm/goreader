@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,29 +10,43 @@ import (
 	"github.com/google/logger"
 	"github.com/wormggmm/goreader/app"
 	"github.com/wormggmm/goreader/epub"
-	"github.com/wormggmm/goreader/nav"
 )
 
+var (
+	helpPrint bool
+	opt       = &app.Option{}
+)
+
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, "Usage:")
+		printUsage()
+		flag.PrintDefaults()
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, "When Reading:")
+		printHelp()
+	}
+	flag.BoolVar(&opt.DebugMode, "d", false, "debug mode(debug log in same directory of the book)")
+	flag.BoolVar(&opt.NoBlank, "nb", false, "not blank line")
+}
 func main() {
 	if len(os.Args) <= 1 {
-		printUsage()
+		flag.Usage()
 		os.Exit(1)
 	}
-
-	if os.Args[1] == "-h" || os.Args[1] == "--help" {
+	flag.Parse()
+	if helpPrint {
 		printHelp()
 		os.Exit(1)
 	}
-	debugMode := false
-	if len(os.Args) == 3 {
-		if os.Args[1] == "-d" || os.Args[1] == "--debug" {
-			debugMode = true
-		}
+	args := flag.Args()
+	if len(args) <= 0 {
+		fmt.Fprintln(os.Stderr, "No epub file specified")
+		os.Exit(1)
 	}
-	filePath := os.Args[len(os.Args)-1]
+	filePath := args[0]
 	fileDir := filepath.Dir(filePath)
-	if debugMode {
-	} else {
+	if !opt.DebugMode {
 		fileDir = os.DevNull
 	}
 	lf := newLogger(fileDir)
@@ -52,7 +67,7 @@ func main() {
 	defer rc.Close()
 	book := rc.Rootfiles[0]
 
-	a := app.NewApp(book, new(nav.Pager), filePath)
+	a := app.NewApp(book, filePath, opt)
 	a.Run()
 
 	if a.Err() != nil {
@@ -76,23 +91,22 @@ func newLogger(logPath string) *os.File {
 	return lf
 }
 func printUsage() {
-	fmt.Fprintln(os.Stderr, "goreader [epub_file]")
+	fmt.Fprintln(os.Stderr, "goreader [-h] [-d] [-nb] [epub_file]")
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "-h		print keybindings")
 }
 
 func printHelp() {
-	fmt.Fprintln(os.Stderr, "Key                  Action")
+	fmt.Fprintln(os.Stderr, "	Key                  Action")
 	fmt.Fprintln(os.Stderr)
-	fmt.Fprintln(os.Stderr, "q / Esc              Quit")
-	fmt.Fprintln(os.Stderr, "k / Up arrow         Scroll up")
-	fmt.Fprintln(os.Stderr, "j / Down arrow       Scroll down")
-	fmt.Fprintln(os.Stderr, "h / Left arrow       Scroll left")
-	fmt.Fprintln(os.Stderr, "l / Right arrow      Scroll right")
-	fmt.Fprintln(os.Stderr, "b                    Previous page")
-	fmt.Fprintln(os.Stderr, "f                    Next page")
-	fmt.Fprintln(os.Stderr, "B                    Previous chapter")
-	fmt.Fprintln(os.Stderr, "F                    Next chapter")
-	fmt.Fprintln(os.Stderr, "g                    Top of chapter")
-	fmt.Fprintln(os.Stderr, "G                    Bottom of chapter")
+	fmt.Fprintln(os.Stderr, "	q / Esc              Quit")
+	fmt.Fprintln(os.Stderr, "	k / Up arrow         Scroll up")
+	fmt.Fprintln(os.Stderr, "	j / Down arrow       Scroll down")
+	fmt.Fprintln(os.Stderr, "	h / Left arrow       Scroll left")
+	fmt.Fprintln(os.Stderr, "	l / Right arrow      Scroll right")
+	fmt.Fprintln(os.Stderr, "	b                    Previous page")
+	fmt.Fprintln(os.Stderr, "	f                    Next page")
+	fmt.Fprintln(os.Stderr, "	B                    Previous chapter")
+	fmt.Fprintln(os.Stderr, "	F                    Next chapter")
+	fmt.Fprintln(os.Stderr, "	g                    Top of chapter")
+	fmt.Fprintln(os.Stderr, "	G                    Bottom of chapter")
 }

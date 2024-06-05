@@ -25,9 +25,10 @@ type PageNavigator interface {
 }
 
 type Pager struct {
-	scrollX int
-	scrollY int
-	doc     parse.Cellbuf
+	scrollX  int
+	scrollY  int
+	doc      parse.Cellbuf
+	NotBlank bool
 }
 
 // setDoc sets the pager's cell buffer
@@ -41,7 +42,28 @@ func (p *Pager) Draw() error {
 
 	width, height := termbox.Size()
 	var centerOffset int
+	screenY := -1
 	for y := 0; y < height; y++ {
+		screenY++
+		isBlank := true
+		if p.NotBlank {
+			for x := 0; x < p.doc.Width; x++ {
+				index := (y+p.scrollY)*p.doc.Width + x
+				if index >= len(p.doc.Cells) || index <= 0 {
+					continue
+				}
+				cell := p.doc.Cells[index]
+				if cell.Ch != 0 {
+					isBlank = false
+					break
+				}
+			}
+			if isBlank {
+				screenY--
+				height++
+				continue
+			}
+		}
 		for x := 0; x < p.doc.Width; x++ {
 			index := (y+p.scrollY)*p.doc.Width + x
 			if index >= len(p.doc.Cells) || index <= 0 {
@@ -54,7 +76,7 @@ func (p *Pager) Draw() error {
 
 			// Calling SetCell with coordinates outside of the terminal viewport
 			// results in a no-op.
-			termbox.SetCell(x+p.scrollX+centerOffset, y, cell.Ch, cell.Fg, cell.Bg)
+			termbox.SetCell(x+p.scrollX+centerOffset, screenY, cell.Ch, cell.Fg, cell.Bg)
 		}
 	}
 
