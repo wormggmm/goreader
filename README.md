@@ -1,10 +1,11 @@
 # goreader
-## **FORK From wormggmm/goreader**
+## **FORK From taylorskalyo/goreader**
 ### Changed
-1. Hot key for Next/Previous Chapter
+1. change Hot key for Next/Previous Chapter
 2. Automatically save/restore the last read place of each book
-   1. just save chapter and page scroll_Y, if you changed view width....(fixing)
+   1. just save chapter and page scroll_Y, so if you changed view width....(fixing)
    2. the mark is named .{BookTitle}.mark, in the same path with the book.
+3. add -d param for print debug log into file(same path with the book)
 
 
 Terminal epub reader
