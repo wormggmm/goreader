@@ -2,7 +2,7 @@ package mock
 
 import (
 	"github.com/stretchr/testify/mock"
-	"github.com/taylorskalyo/goreader/parse"
+	"github.com/wormggmm/goreader/parse"
 )
 
 type MockPageNavigator struct {
@@ -18,6 +18,13 @@ func (p *MockPageNavigator) MaxScrollX() int {
 }
 
 func (p *MockPageNavigator) MaxScrollY() int {
+	panic("not implemented") // TODO: Implement
+}
+func (p *MockPageNavigator) ScrollY() int {
+	panic("not implemented") // TODO: Implement
+}
+
+func (p *MockPageNavigator) SetScrollY(y int) {
 	panic("not implemented") // TODO: Implement
 }
 

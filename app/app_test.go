@@ -5,7 +5,7 @@ import (
 
 	termbox "github.com/nsf/termbox-go"
 	"github.com/stretchr/testify/mock"
-	localMock "github.com/taylorskalyo/goreader/mock"
+	localMock "github.com/wormggmm/goreader/mock"
 )
 
 func TestInitNavigationKeys(t *testing.T) {

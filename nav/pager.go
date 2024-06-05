@@ -2,7 +2,7 @@ package nav
 
 import (
 	termbox "github.com/nsf/termbox-go"
-	"github.com/taylorskalyo/goreader/parse"
+	"github.com/wormggmm/goreader/parse"
 )
 
 type PageNavigator interface {
@@ -20,6 +20,8 @@ type PageNavigator interface {
 	Size() (int, int)
 	ToBottom()
 	ToTop()
+	ScrollY() int
+	SetScrollY(y int)
 }
 
 type Pager struct {
@@ -101,6 +103,12 @@ func (p *Pager) PageDown() bool {
 	}
 
 	return false
+}
+func (p *Pager) ScrollY() int {
+	return p.scrollY
+}
+func (p *Pager) SetScrollY(y int) {
+	p.scrollY = y
 }
 
 // pageUp pans the pager's viewport up by a full page, without exceeding the

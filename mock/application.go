@@ -2,7 +2,7 @@ package mock
 
 import (
 	"github.com/stretchr/testify/mock"
-	"github.com/taylorskalyo/goreader/nav"
+	"github.com/wormggmm/goreader/nav"
 )
 
 type MockApplication struct {

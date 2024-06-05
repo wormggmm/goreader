@@ -1,10 +1,15 @@
 package app
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+
+	"github.com/google/logger"
 	termbox "github.com/nsf/termbox-go"
-	"github.com/taylorskalyo/goreader/epub"
-	"github.com/taylorskalyo/goreader/nav"
-	"github.com/taylorskalyo/goreader/parse"
+	"github.com/wormggmm/goreader/epub"
+	"github.com/wormggmm/goreader/nav"
+	"github.com/wormggmm/goreader/parse"
 )
 
 type Application interface {
@@ -21,9 +26,10 @@ type Application interface {
 
 // app is used to store the current state of the application.
 type app struct {
-	book    *epub.Rootfile
-	pager   nav.PageNavigator
-	chapter int
+	book     *epub.Rootfile
+	pager    nav.PageNavigator
+	chapter  int
+	bookPath string
 
 	err error
 
@@ -31,8 +37,19 @@ type app struct {
 }
 
 // NewApp creates an App
-func NewApp(b *epub.Rootfile, p nav.PageNavigator) Application {
-	return &app{pager: p, book: b, exitSignal: make(chan bool, 1)}
+func NewApp(b *epub.Rootfile, p nav.PageNavigator, bookpath string) Application {
+	logger.Info("Creating new app:")
+	logger.Info("Title:", b.Title)
+
+	logger.Info("Contributor:", b.Contributor)
+	logger.Info("Coverage:", b.Coverage)
+	logger.Info("Creator:", b.Creator)
+	logger.Info("Description:", b.Description)
+	logger.Info("Identifier:", b.Identifier)
+	logger.Info("Language:", b.Language)
+	logger.Info("Metadata:", b.Metadata)
+	bookpath = filepath.Dir(bookpath)
+	return &app{pager: p, book: b, exitSignal: make(chan bool, 1), bookPath: bookpath}
 }
 
 // Run opens a book, renders its contents within the pager, and polls for
@@ -49,7 +66,7 @@ func (a *app) Run() {
 	if a.err = a.openChapter(); a.err != nil {
 		return
 	}
-
+	a.restore()
 MainLoop:
 	for {
 		select {
@@ -70,6 +87,7 @@ MainLoop:
 			} else if action, ok := chmap[ev.Ch]; ok {
 				action()
 			}
+			a.record()
 		}
 	}
 }
@@ -107,8 +125,8 @@ func initNavigationKeys(a Application) (map[termbox.Key]func(), map[rune]func())
 		'q': a.Exit,
 		'f': a.Forward,
 		'b': a.Back,
-		'L': a.NextChapter,
-		'H': a.PrevChapter,
+		'F': a.NextChapter,
+		'B': a.PrevChapter,
 	}
 
 	return keymap, chmap
@@ -116,7 +134,64 @@ func initNavigationKeys(a Application) (map[termbox.Key]func(), map[rune]func())
 
 // Exit requests app termination.
 func (a *app) Exit() {
+
 	a.exitSignal <- true
+}
+
+type Mark struct {
+	Chapter int `json:"chapter"`
+	ScrollY int `json:"scroll_y"`
+}
+
+func (a *app) markFilePath() string {
+	markFilePath := filepath.Join(a.bookPath, "."+a.book.Title+".mark")
+	return markFilePath
+}
+func (a *app) restore() {
+	markFilePath := a.markFilePath()
+	markFile, err := os.OpenFile(markFilePath, os.O_RDONLY, 0644)
+	if err != nil {
+		logger.Error("Failed to open mark file:", err)
+		return
+	}
+	defer markFile.Close()
+	b := make([]byte, 256)
+	count, err := markFile.Read(b)
+	if err != nil {
+		logger.Error("Failed to read mark file:", err)
+		return
+	}
+	mark := &Mark{}
+	logger.Info("restore: ", string(b))
+	err = json.Unmarshal(b[:count], mark)
+	if err != nil {
+		logger.Error("Failed to unmarshal mark file:", err)
+		return
+	}
+	a.chapter = mark.Chapter
+	a.openChapter()
+	a.pager.SetScrollY(mark.ScrollY)
+}
+func (a *app) record() {
+	markFilePath := a.markFilePath()
+	markFile, err := os.OpenFile(markFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	logger.Infof("record: chapter=%d, page=%d", a.chapter, a.pager.ScrollY())
+	if err != nil {
+		logger.Error("Failed to open mark file:", err)
+		return
+	}
+	defer markFile.Close()
+	mark := Mark{Chapter: a.chapter, ScrollY: a.pager.ScrollY()}
+	b, err := json.Marshal(mark)
+	if err != nil {
+		logger.Error("Failed to open mark file:", err)
+		return
+	}
+	_, err = markFile.Write(b)
+	if err != nil {
+		logger.Error("Failed to open mark file:", err)
+		return
+	}
 }
 
 // openChapter opens the current chapter and renders it within the pager.

@@ -2,18 +2,18 @@
 
 Minimal epub library written in Go
 
-[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/taylorskalyo/goreader/epub)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/wormggmm/goreader/epub)
 
 ## Installation
 
 ``` shell
-go get github.com/taylorskalyo/goreader/epub
+go get github.com/wormggmm/goreader/epub
 ```
 
 ## Basic usage
 
 ``` golang
-import "github.com/taylorskalyo/goreader/epub"
+import "github.com/wormggmm/goreader/epub"
 
 rc, err := epub.OpenReader(os.Args[1])
 if err != nil {

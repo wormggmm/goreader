@@ -15,7 +15,7 @@ import (
 
 	"github.com/nfnt/resize"
 	termbox "github.com/nsf/termbox-go"
-	"github.com/taylorskalyo/goreader/epub"
+	"github.com/wormggmm/goreader/epub"
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
