@@ -1,6 +1,9 @@
 # goreader
 ## **FORK From taylorskalyo/goreader**
 ### Changed
+#### 2024/06/06(#1)
+1. add Hot key hooker when the terminal is not in focus
+
 #### 2024/06/05(#2)
 1. Add -nb (not blank line mode)
 2. Use the golang flag package instead os.Args
