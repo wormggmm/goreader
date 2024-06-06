@@ -23,6 +23,16 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
+github.com/vcaesar/keycode v0.10.1 h1:0DesGmMAPWpYTCYddOFiCMKCDKgNnwiQa2QXindVUHw=
+github.com/vcaesar/keycode v0.10.1/go.mod h1:JNlY7xbKsh+LAGfY2j4M3znVrGEm5W1R8s/Uv6BJcfQ=
+github.com/wormggmm/gohook v0.0.0-20240606033018-577e685447b7 h1:Vhh7uCXY21bhdZzgFsJWZG5luNRr6eLsLiN1wkKSFKI=
+github.com/wormggmm/gohook v0.0.0-20240606033018-577e685447b7/go.mod h1:z/zoG3sQkgokd25GN8jEB78yO6EURAGkGmgf8EDDLg8=
+github.com/wormggmm/gohook v0.0.0-20240606042151-d051dcb9752a h1:AKEZW9FrBsVuKNnh5cKtzXuviisVe70QxuaFmya1x3s=
+github.com/wormggmm/gohook v0.0.0-20240606042151-d051dcb9752a/go.mod h1:z/zoG3sQkgokd25GN8jEB78yO6EURAGkGmgf8EDDLg8=
+github.com/wormggmm/gohook v0.0.1 h1:3dSgexcR8OQszOK5HxwZqAOBEKw9iOMeng6uAv5QBss=
+github.com/wormggmm/gohook v0.0.1/go.mod h1:z/zoG3sQkgokd25GN8jEB78yO6EURAGkGmgf8EDDLg8=
+github.com/wormggmm/gohook v0.41.0 h1:h1vK3w/UQpq0YkIiGnxm9Awv85W54esL0/NUYGueggo=
+github.com/wormggmm/gohook v0.41.0/go.mod h1:FedpuAkVqzM5t67L5fcf3hSSCUDO9cM5YkWCw1U+nuc=
 golang.org/x/net v0.10.0 h1:X2//UzNDwYmtCLn7To6G58Wr6f5ahEAQgKNzv9Y951M=
 golang.org/x/net v0.10.0/go.mod h1:0qNGK6F8kojg2nk9dLZ2mShWaEBan6FAoqfSigmmuDg=
 golang.org/x/sys v0.0.0-20210426230700-d19ff857e887/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=

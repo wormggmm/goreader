@@ -28,6 +28,7 @@ func init() {
 	}
 	flag.BoolVar(&opt.DebugMode, "d", false, "debug mode(debug log in same directory of the book)")
 	flag.BoolVar(&opt.NoBlank, "nb", false, "not blank line")
+	flag.BoolVar(&opt.GlobalHook, "g", false, "hook hotkey global(can without focus)")
 }
 func main() {
 	if len(os.Args) <= 1 {
@@ -91,7 +92,7 @@ func newLogger(logPath string) *os.File {
 	return lf
 }
 func printUsage() {
-	fmt.Fprintln(os.Stderr, "goreader [-h] [-d] [-nb] [epub_file]")
+	fmt.Fprintln(os.Stderr, "goreader [-h] [-d] [-g] [-nb] [epub_file]")
 	fmt.Fprintln(os.Stderr, "")
 }
 

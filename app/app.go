@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/logger"
 	termbox "github.com/nsf/termbox-go"
+	hook "github.com/wormggmm/gohook"
 	"github.com/wormggmm/goreader/epub"
 	"github.com/wormggmm/goreader/nav"
 	"github.com/wormggmm/goreader/parse"
@@ -25,8 +26,9 @@ type Application interface {
 }
 
 type Option struct {
-	DebugMode bool
-	NoBlank   bool
+	DebugMode  bool
+	NoBlank    bool
+	GlobalHook bool
 }
 
 // app is used to store the current state of the application.
@@ -37,7 +39,8 @@ type app struct {
 	bookPath string
 	opt      *Option
 
-	err error
+	eventCh chan termbox.Event
+	err     error
 
 	exitSignal chan bool
 }
@@ -57,7 +60,12 @@ func NewApp(b *epub.Rootfile, bookpath string, opt *Option) Application {
 	bookpath = filepath.Dir(bookpath)
 	p := new(nav.Pager)
 	p.NotBlank = opt.NoBlank
-	return &app{pager: p, book: b, exitSignal: make(chan bool, 1), bookPath: bookpath, opt: opt}
+	return &app{pager: p,
+		book:       b,
+		exitSignal: make(chan bool, 1),
+		bookPath:   bookpath, opt: opt,
+		eventCh: make(chan termbox.Event, 1),
+	}
 }
 
 // Run opens a book, renders its contents within the pager, and polls for
@@ -70,32 +78,39 @@ func (a *app) Run() {
 	defer termbox.Close()
 
 	keymap, chmap := initNavigationKeys(a)
-
+	if a.opt.GlobalHook {
+		hookCh := initKeyHook(a)
+		defer close(hookCh)
+	} else {
+		go func() {
+			for {
+				a.eventCh <- termbox.PollEvent()
+			}
+		}()
+	}
 	if a.err = a.openChapter(); a.err != nil {
 		return
 	}
 	a.restore()
 MainLoop:
 	for {
-		select {
-		case <-a.exitSignal:
-			break MainLoop
-		default:
-		}
-
 		if a.err = a.pager.Draw(); a.err != nil {
 			return
 		}
-
-		ev := termbox.PollEvent()
-		switch ev.Type {
-		case termbox.EventKey:
-			if action, ok := keymap[ev.Key]; ok {
-				action()
-			} else if action, ok := chmap[ev.Ch]; ok {
-				action()
+		select {
+		case <-a.exitSignal:
+			break MainLoop
+		case ev := <-a.eventCh:
+			switch ev.Type {
+			case termbox.EventKey:
+				logger.Info("action ch:", ev.Ch, " key:", ev.Key)
+				if action, ok := keymap[ev.Key]; ok {
+					action()
+				} else if action, ok := chmap[ev.Ch]; ok {
+					action()
+				}
+				a.record()
 			}
-			a.record()
 		}
 	}
 }
@@ -108,6 +123,40 @@ func (a *app) PageNavigator() nav.PageNavigator {
 	return a.pager
 }
 
+func initKeyHook(a *app) chan hook.Event {
+	evChan := hook.Start()
+	go func() {
+		for hookEv := range evChan {
+			if hookEv.Kind != hook.KeyDown {
+				continue
+			}
+			ev := termbox.Event{
+				Type: termbox.EventKey,
+			}
+			str := hook.RawcodetoKeychar(hookEv.Rawcode)
+			if len(str) > 0 {
+				if len(str) == 1 {
+					ev.Ch = rune(str[0])
+				} else {
+					switch str {
+					case "up arrow":
+						ev.Key = 65517
+					case "down arrow":
+						ev.Key = 65516
+					case "left arrow":
+						ev.Key = 65515
+					case "right arrow":
+						ev.Key = 65514
+					}
+				}
+			}
+			logger.Info("hookEv:", hookEv.Rawcode, " str:", str, " xxxxx:", ev.Ch, " keyChar:", hookEv.Keychar)
+			a.eventCh <- ev
+		}
+		logger.Info("hook exit")
+	}()
+	return evChan
+}
 func initNavigationKeys(a Application) (map[termbox.Key]func(), map[rune]func()) {
 	keymap := map[termbox.Key]func(){
 		// Pager

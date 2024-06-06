@@ -29,7 +29,7 @@ go install github.com/wormggmm/goreader
 ## Usage
 
 ``` shell
-goreader [-h] [-d] [-nb] [epub_file]
+goreader [-h] [-d] [-g] [-nb] [epub_file]
 
 # help print
 goreader -h
@@ -39,6 +39,9 @@ goreader -d [epub_file]
 
 # none blank line mode
 goreader -nb [epub_file]
+
+# hook hotkey can without focus
+goreader -g [epub_file]
 ```
 
 ### Keybindings
