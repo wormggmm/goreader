@@ -81,13 +81,15 @@ func (a *app) Run() {
 	if a.opt.GlobalHook {
 		hookCh := initKeyHook(a)
 		defer close(hookCh)
-	} else {
-		go func() {
-			for {
-				a.eventCh <- termbox.PollEvent()
-			}
-		}()
 	}
+	go func() {
+		for {
+			ev := termbox.PollEvent()
+			if !a.opt.GlobalHook {
+				a.eventCh <- ev
+			}
+		}
+	}()
 	if a.err = a.openChapter(); a.err != nil {
 		return
 	}

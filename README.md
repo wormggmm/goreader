@@ -1,6 +1,10 @@
 # goreader
 ## **FORK From taylorskalyo/goreader**
 ### Changed
+
+#### 2024/06/06(#2) [version: v0.0.3]
+1. fix: use -g model when exit goreader left the hotkey which you have pressed in terminal
+
 #### 2024/06/06(#1)
 1. add Hot key hooker when the terminal is not in focus
 
@@ -26,7 +30,7 @@ Goreader is a minimal ereader application that runs in the terminal. Images are 
 ## Installation
 
 ``` shell
-go install github.com/wormggmm/goreader
+go install github.com/wormggmm/goreader@[v0.0.1]
 ```
 
 ## Usage
