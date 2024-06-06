@@ -13,12 +13,14 @@ import (
 )
 
 var (
+	version   = "v0.0.4"
 	helpPrint bool
 	opt       = &app.Option{}
 )
 
 func init() {
 	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, "version:", version)
 		fmt.Fprintln(os.Stderr, "Usage:")
 		printUsage()
 		flag.PrintDefaults()

@@ -2,6 +2,10 @@
 ## **FORK From taylorskalyo/goreader**
 ### Changed
 
+#### 2024/06/06(#3) [version: v0.0.4]
+1. add goreader version in help infomation
+2. update go version to 1.20
+
 #### 2024/06/06(#2) [version: v0.0.3]
 1. fix: use -g model when exit goreader left the hotkey which you have pressed in terminal
 
