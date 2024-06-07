@@ -1,6 +1,8 @@
 # goreader
 ## **FORK From taylorskalyo/goreader**
 ### Changed
+#### 2024/06/07(#2) [version: v0.0.6]
+1. add mouse wheel support
 
 #### 2024/06/07(#1) [version: v0.0.5]
 1. add hotkey for switch global hotkey hooker
@@ -75,4 +77,5 @@ goreader -g [epub_file]
 | `F`               | Next chapter      |
 | `g`               | Top of chapter    |
 | `G`               | Bottom of chapter |
-| `Ctrl/Cmd` + 1,2,3 | switch global hotkey listener |
+| `Ctrl/Cmd` + `1`,`2`,`3` | switch global hotkey listener |
+| `mouse wheel`  | Scroll like `j`/`h` |

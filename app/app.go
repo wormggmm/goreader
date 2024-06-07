@@ -82,6 +82,7 @@ func (a *app) Run() {
 	if a.err = termbox.Init(); a.err != nil {
 		return
 	}
+	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
 	defer termbox.Flush()
 	defer termbox.Close()
 	keymap, chmap := initNavigationKeys(a)
@@ -117,6 +118,12 @@ MainLoop:
 					action()
 				}
 				a.record()
+			case termbox.EventMouse:
+				if action, ok := keymap[ev.Key]; ok {
+					logger.Info("mouse action ch:", ev.Ch, " key:", ev.Key)
+					action()
+					a.record()
+				}
 			}
 		}
 	}
@@ -135,7 +142,23 @@ func initKeyHook(a *app) chan hook.Event {
 	go func() {
 		for hookEv := range evChan {
 			str := hook.RawcodetoKeychar(hookEv.Rawcode)
+			// logger.Info("hookEv:", hookEv, " str:", str)
 			switch hookEv.Kind {
+			case hook.MouseWheel:
+				if !a.globalSwitch {
+					break
+				}
+				if hookEv.Rotation > 0 {
+					for i := int32(0); i < hookEv.Rotation; i++ {
+						a.pager.ScrollDown()
+					}
+				} else if hookEv.Rotation < 0 {
+					for i := int32(0); i > hookEv.Rotation; i-- {
+						a.pager.ScrollUp()
+					}
+				}
+
+				a.pager.Draw()
 			case hook.KeyHold:
 				logger.Info("hookEv:", hookEv, " str:", str)
 				if str == "ctrl" {
@@ -194,6 +217,9 @@ func initNavigationKeys(a Application) (map[termbox.Key]func(), map[rune]func())
 		termbox.KeyArrowUp:    a.PageNavigator().ScrollUp,
 		termbox.KeyArrowRight: a.PageNavigator().ScrollRight,
 		termbox.KeyArrowLeft:  a.PageNavigator().ScrollLeft,
+
+		termbox.MouseWheelUp:   a.PageNavigator().ScrollUp,
+		termbox.MouseWheelDown: a.PageNavigator().ScrollDown,
 
 		// Navigation
 		termbox.KeyEsc: a.Exit,
