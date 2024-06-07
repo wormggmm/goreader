@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -42,7 +43,10 @@ type app struct {
 	eventCh chan termbox.Event
 	err     error
 
-	exitSignal chan bool
+	exitSignal   chan bool
+	ctrlHood     bool
+	ctrlInput    string
+	globalSwitch bool // global hook switch
 }
 
 // NewApp creates an App
@@ -64,8 +68,12 @@ func NewApp(b *epub.Rootfile, bookpath string, opt *Option) Application {
 		book:       b,
 		exitSignal: make(chan bool, 1),
 		bookPath:   bookpath, opt: opt,
-		eventCh: make(chan termbox.Event, 1),
+		eventCh:      make(chan termbox.Event, 1),
+		globalSwitch: opt.GlobalHook,
 	}
+}
+func (a *app) GlobalSwitch() bool {
+	return a.globalSwitch
 }
 
 // Run opens a book, renders its contents within the pager, and polls for
@@ -76,16 +84,13 @@ func (a *app) Run() {
 	}
 	defer termbox.Flush()
 	defer termbox.Close()
-
 	keymap, chmap := initNavigationKeys(a)
-	if a.opt.GlobalHook {
-		hookCh := initKeyHook(a)
-		defer close(hookCh)
-	}
+	hookCh := initKeyHook(a)
+	defer close(hookCh)
 	go func() {
 		for {
 			ev := termbox.PollEvent()
-			if !a.opt.GlobalHook {
+			if !a.GlobalSwitch() {
 				a.eventCh <- ev
 			}
 		}
@@ -129,31 +134,54 @@ func initKeyHook(a *app) chan hook.Event {
 	evChan := hook.Start()
 	go func() {
 		for hookEv := range evChan {
-			if hookEv.Kind != hook.KeyDown {
-				continue
-			}
-			ev := termbox.Event{
-				Type: termbox.EventKey,
-			}
 			str := hook.RawcodetoKeychar(hookEv.Rawcode)
-			if len(str) > 0 {
-				if len(str) == 1 {
-					ev.Ch = rune(str[0])
-				} else {
-					switch str {
-					case "up arrow":
-						ev.Key = 65517
-					case "down arrow":
-						ev.Key = 65516
-					case "left arrow":
-						ev.Key = 65515
-					case "right arrow":
-						ev.Key = 65514
+			switch hookEv.Kind {
+			case hook.KeyHold:
+				logger.Info("hookEv:", hookEv, " str:", str)
+				if str == "ctrl" {
+					a.ctrlHood = true
+					a.ctrlInput = ""
+					logger.Info("ctrl hold")
+				}
+			case hook.KeyUp:
+				logger.Info("hookEv:", hookEv, " str:", str)
+				if str == "ctrl" {
+					a.ctrlHood = false
+					if a.ctrlInput == "123" {
+						a.globalSwitch = !a.globalSwitch
+						a.pager.DrawMsg(fmt.Sprintf("global hook:%v", a.globalSwitch))
+						logger.Info("switch global hook:", a.globalSwitch)
 					}
 				}
+			case hook.KeyDown:
+				logger.Info("hookEv:", hookEv, " str:", str)
+				if a.ctrlHood {
+					a.ctrlInput += str
+				} else if a.globalSwitch {
+					ev := termbox.Event{
+						Type: termbox.EventKey,
+					}
+					if len(str) > 0 {
+						if len(str) == 1 {
+							ev.Ch = rune(str[0])
+						} else {
+							switch str {
+							case "up arrow":
+								ev.Key = 65517
+							case "down arrow":
+								ev.Key = 65516
+							case "left arrow":
+								ev.Key = 65515
+							case "right arrow":
+								ev.Key = 65514
+							}
+						}
+					}
+					a.eventCh <- ev
+				}
+			default:
+				continue
 			}
-			logger.Info("hookEv:", hookEv.Rawcode, " str:", str, " xxxxx:", ev.Ch, " keyChar:", hookEv.Keychar)
-			a.eventCh <- ev
 		}
 		logger.Info("hook exit")
 	}()

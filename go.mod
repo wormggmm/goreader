@@ -7,7 +7,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/nsf/termbox-go v1.1.1
 	github.com/stretchr/testify v1.8.4
-	github.com/wormggmm/gohook v0.0.1
+	github.com/wormggmm/gohook v0.0.2
 	golang.org/x/net v0.10.0
 )
 

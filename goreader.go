@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	version   = "v0.0.4"
+	version   = "v0.0.5"
 	helpPrint bool
 	opt       = &app.Option{}
 )
@@ -112,4 +112,5 @@ func printHelp() {
 	fmt.Fprintln(os.Stderr, "	F                    Next chapter")
 	fmt.Fprintln(os.Stderr, "	g                    Top of chapter")
 	fmt.Fprintln(os.Stderr, "	G                    Bottom of chapter")
+	fmt.Fprintln(os.Stderr, "	Ctrl/Cmd + 1,2,3     Turn on/off global hotkey listener")
 }

@@ -28,6 +28,8 @@ github.com/vcaesar/keycode v0.10.1/go.mod h1:JNlY7xbKsh+LAGfY2j4M3znVrGEm5W1R8s/
 github.com/vcaesar/tt v0.20.0 h1:9t2Ycb9RNHcP0WgQgIaRKJBB+FrRdejuaL6uWIHuoBA=
 github.com/wormggmm/gohook v0.0.1 h1:3dSgexcR8OQszOK5HxwZqAOBEKw9iOMeng6uAv5QBss=
 github.com/wormggmm/gohook v0.0.1/go.mod h1:z/zoG3sQkgokd25GN8jEB78yO6EURAGkGmgf8EDDLg8=
+github.com/wormggmm/gohook v0.0.2 h1:z8MOvfX+JYPlvqISUyeuRUxc3UFiJW2GBsqKNcApd6c=
+github.com/wormggmm/gohook v0.0.2/go.mod h1:z/zoG3sQkgokd25GN8jEB78yO6EURAGkGmgf8EDDLg8=
 golang.org/x/net v0.10.0 h1:X2//UzNDwYmtCLn7To6G58Wr6f5ahEAQgKNzv9Y951M=
 golang.org/x/net v0.10.0/go.mod h1:0qNGK6F8kojg2nk9dLZ2mShWaEBan6FAoqfSigmmuDg=
 golang.org/x/sys v0.0.0-20210426230700-d19ff857e887/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=

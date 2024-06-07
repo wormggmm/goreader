@@ -2,6 +2,11 @@
 ## **FORK From taylorskalyo/goreader**
 ### Changed
 
+#### 2024/06/07(#1) [version: v0.0.5]
+1. add hotkey for switch global hotkey hooker
+   1. ctrl/command+1,2,3 to switch
+      (hold ctrl/command;press(not hold) 1,2,3;release ctrl/command)
+
 #### 2024/06/06(#3) [version: v0.0.4]
 1. add goreader version in help infomation
 2. update go version to 1.20
@@ -70,3 +75,4 @@ goreader -g [epub_file]
 | `F`               | Next chapter      |
 | `g`               | Top of chapter    |
 | `G`               | Bottom of chapter |
+| `Ctrl/Cmd` + 1,2,3 | switch global hotkey listener |

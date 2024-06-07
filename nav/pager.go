@@ -1,11 +1,14 @@
 package nav
 
 import (
+	"time"
+
 	termbox "github.com/nsf/termbox-go"
 	"github.com/wormggmm/goreader/parse"
 )
 
 type PageNavigator interface {
+	DrawMsg(msg string) error
 	Draw() error
 	MaxScrollX() int
 	MaxScrollY() int
@@ -34,6 +37,20 @@ type Pager struct {
 // setDoc sets the pager's cell buffer
 func (p *Pager) SetDoc(doc parse.Cellbuf) {
 	p.doc = doc
+}
+
+func (p *Pager) DrawMsg(msg string) error {
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	// width, height := termbox.Size()
+	for idx, c := range msg {
+		termbox.SetCell(idx, 0, c, termbox.ColorDefault, termbox.ColorDefault)
+	}
+	err := termbox.Flush()
+	if err != nil {
+		return err
+	}
+	time.Sleep(1 * time.Second)
+	return p.Draw()
 }
 
 // Draw displays a pager's cell buffer in the terminal.
