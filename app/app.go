@@ -38,6 +38,7 @@ type app struct {
 	pager    nav.PageNavigator
 	chapter  int
 	bookPath string
+	fileName string
 	opt      *Option
 
 	eventCh chan termbox.Event
@@ -46,7 +47,11 @@ type app struct {
 	exitSignal   chan bool
 	ctrlHood     bool
 	ctrlInput    string
+	markHood     bool
+	markInput    string
 	globalSwitch bool // global hook switch
+
+	mark *Mark
 }
 
 // NewApp creates an App
@@ -61,6 +66,7 @@ func NewApp(b *epub.Rootfile, bookpath string, opt *Option) Application {
 	logger.Info("Identifier:", b.Identifier)
 	logger.Info("Language:", b.Language)
 	logger.Info("Metadata:", b.Metadata)
+	filename := filepath.Base(bookpath)
 	bookpath = filepath.Dir(bookpath)
 	p := new(nav.Pager)
 	p.NotBlank = opt.NoBlank
@@ -68,8 +74,10 @@ func NewApp(b *epub.Rootfile, bookpath string, opt *Option) Application {
 		book:       b,
 		exitSignal: make(chan bool, 1),
 		bookPath:   bookpath, opt: opt,
+		fileName:     filename,
 		eventCh:      make(chan termbox.Event, 1),
 		globalSwitch: opt.GlobalHook,
+		mark:         &Mark{Marks: make(map[string]*Bookmark)},
 	}
 }
 func (a *app) GlobalSwitch() bool {
@@ -82,7 +90,7 @@ func (a *app) Run() {
 	if a.err = termbox.Init(); a.err != nil {
 		return
 	}
-	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
+	termbox.SetInputMode(termbox.InputEsc)
 	defer termbox.Flush()
 	defer termbox.Close()
 	keymap, chmap := initNavigationKeys(a)
@@ -99,12 +107,13 @@ func (a *app) Run() {
 	if a.err = a.openChapter(); a.err != nil {
 		return
 	}
-	a.restore()
+	a.restore("")
 MainLoop:
 	for {
 		if a.err = a.pager.Draw(); a.err != nil {
 			return
 		}
+		logger.Info("draw")
 		select {
 		case <-a.exitSignal:
 			break MainLoop
@@ -117,13 +126,7 @@ MainLoop:
 				} else if action, ok := chmap[ev.Ch]; ok {
 					action()
 				}
-				a.record()
-			case termbox.EventMouse:
-				if action, ok := keymap[ev.Key]; ok {
-					logger.Info("mouse action ch:", ev.Ch, " key:", ev.Key)
-					action()
-					a.record()
-				}
+				a.record("")
 			}
 		}
 	}
@@ -160,24 +163,43 @@ func initKeyHook(a *app) chan hook.Event {
 
 				a.pager.Draw()
 			case hook.KeyHold:
-				logger.Info("hookEv:", hookEv, " str:", str)
-				if str == "ctrl" {
+				// logger.Info("hookEv:", hookEv, " str:", str)
+				switch str {
+				case "ctrl":
 					a.ctrlHood = true
 					a.ctrlInput = ""
 					logger.Info("ctrl hold")
+				case "m", "n":
+					a.markHood = true
+					logger.Info("mark hold")
 				}
 			case hook.KeyUp:
-				logger.Info("hookEv:", hookEv, " str:", str)
-				if str == "ctrl" {
+				// logger.Info("hookEv:", hookEv, " str:", str)
+				switch str {
+				case "ctrl":
 					a.ctrlHood = false
 					if a.ctrlInput == "123" {
 						a.globalSwitch = !a.globalSwitch
 						a.pager.DrawMsg(fmt.Sprintf("global hook:%v", a.globalSwitch))
 						logger.Info("switch global hook:", a.globalSwitch)
 					}
+				case "m":
+					a.markHood = false
+					a.record(a.markInput)
+					logger.Info("mark record hook:", a.markInput)
+					a.markInput = ""
+				case "n":
+					a.markHood = false
+					a.restore(a.markInput)
+					logger.Info("mark restore hook:", a.markInput)
+					a.markInput = ""
+					a.eventCh <- termbox.Event{Type: termbox.EventNone}
+				}
+				if a.markHood {
+					a.markInput += str
 				}
 			case hook.KeyDown:
-				logger.Info("hookEv:", hookEv, " str:", str)
+				// logger.Info("hookEv:", hookEv, " str:", str)
 				if a.ctrlHood {
 					a.ctrlInput += str
 				} else if a.globalSwitch {
@@ -251,20 +273,39 @@ func (a *app) Exit() {
 	a.exitSignal <- true
 }
 
-type Mark struct {
+type Bookmark struct {
 	Chapter int `json:"chapter"`
 	ScrollY int `json:"scroll_y"`
 }
+type Mark struct {
+	Chapter int                  `json:"chapter"`
+	ScrollY int                  `json:"scroll_y"`
+	Marks   map[string]*Bookmark `json:"marks"`
+}
 
 func (a *app) markFilePath() string {
-	markFilePath := filepath.Join(a.bookPath, "."+a.book.Title+".mark")
+	markFilePath := filepath.Join(a.bookPath, "."+a.fileName+".mark")
 	return markFilePath
 }
-func (a *app) restore() {
+func (a *app) unmarshalMark(bytes []byte) error {
+	err := json.Unmarshal(bytes, a.mark)
+	if err != nil {
+		logger.Error("Failed to unmarshal mark file:", err)
+		return err
+	}
+	if a.mark.Marks == nil {
+		a.mark.Marks = make(map[string]*Bookmark)
+	}
+	return nil
+}
+func (a *app) marshalMark() ([]byte, error) {
+	return json.Marshal(a.mark)
+}
+func (a *app) restore(markKey string) {
 	markFilePath := a.markFilePath()
 	markFile, err := os.OpenFile(markFilePath, os.O_RDONLY, 0644)
 	if err != nil {
-		logger.Error("Failed to open mark file:", err)
+		logger.Warning("Failed to open mark file:", err)
 		return
 	}
 	defer markFile.Close()
@@ -274,35 +315,50 @@ func (a *app) restore() {
 		logger.Error("Failed to read mark file:", err)
 		return
 	}
-	mark := &Mark{}
-	logger.Info("restore: ", string(b))
-	err = json.Unmarshal(b[:count], mark)
+	err = a.unmarshalMark(b[:count])
 	if err != nil {
 		logger.Error("Failed to unmarshal mark file:", err)
 		return
 	}
-	a.chapter = mark.Chapter
+	chapter := a.mark.Chapter
+	scrollY := a.mark.ScrollY
+	if markKey != "" && a.mark.Marks[markKey] != nil {
+		chapter = a.mark.Marks[markKey].Chapter
+		scrollY = a.mark.Marks[markKey].ScrollY
+	}
+	logger.Info("restore chapter:", chapter, " scrollY:", scrollY)
+	a.chapter = chapter
 	a.openChapter()
-	a.pager.SetScrollY(mark.ScrollY)
+	a.pager.SetScrollY(scrollY)
 }
-func (a *app) record() {
+func (a *app) record(markKey string) {
 	markFilePath := a.markFilePath()
 	markFile, err := os.OpenFile(markFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	logger.Infof("record: chapter=%d, page=%d", a.chapter, a.pager.ScrollY())
+	logger.Infof("path: %s,record: chapter=%d, page=%d", markFilePath, a.chapter, a.pager.ScrollY())
 	if err != nil {
-		logger.Error("Failed to open mark file:", err)
+		logger.Warning("Failed to open mark file:", err)
 		return
 	}
 	defer markFile.Close()
-	mark := Mark{Chapter: a.chapter, ScrollY: a.pager.ScrollY()}
-	b, err := json.Marshal(mark)
+	if a.mark == nil {
+		a.unmarshalMark([]byte("{}"))
+	}
+	a.mark.Chapter = a.chapter
+	a.mark.ScrollY = a.pager.ScrollY()
+	if markKey != "" {
+		a.mark.Marks[markKey] = &Bookmark{
+			Chapter: a.chapter,
+			ScrollY: a.pager.ScrollY(),
+		}
+	}
+	b, err := a.marshalMark()
 	if err != nil {
-		logger.Error("Failed to open mark file:", err)
+		logger.Error("Failed to marshal file:", err)
 		return
 	}
 	_, err = markFile.Write(b)
 	if err != nil {
-		logger.Error("Failed to open mark file:", err)
+		logger.Error("Failed to write mark file:", err)
 		return
 	}
 }

@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	version   = "v0.0.6"
+	version   = "v0.0.7"
 	helpPrint bool
 	opt       = &app.Option{}
 )
@@ -114,4 +114,6 @@ func printHelp() {
 	fmt.Fprintln(os.Stderr, "	G                    Bottom of chapter")
 	fmt.Fprintln(os.Stderr, "	Ctrl/Cmd + 1,2,3     Turn on/off global hotkey listener")
 	fmt.Fprintln(os.Stderr, "	Mouse Wheel          Scroll like j/h")
+	fmt.Fprintln(os.Stderr, "	m + key1,key2,key3   Add bookmark named key1,key2,key3")
+	fmt.Fprintln(os.Stderr, "	n + key1,key2,key3   Load bookmark named key1,key2,key3")
 }

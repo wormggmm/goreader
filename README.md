@@ -1,6 +1,23 @@
 # goreader
 ## **FORK From taylorskalyo/goreader**
 ### Changed
+#### 2024/06/26(#1) [version: v0.0.7]
+1. change bookmark file name 
+
+   [{book.Title}.mark => {bookFileName}.mark]
+
+2. support add multi bookmark
+
+   save bookmark: pressed `m` + key1,key2,key3 and then release the `m`
+
+   load bookmark: pressed `n` + key1,key2,key3 and then release the `n`
+
+   e.g.
+
+   pressed `m` (keeping) and then put down and up `1`,`2`,`3` save the bookmark named "123"
+
+   pressed `n` (keeping) and then put down and up `1`,`2`,`3` load the bookmark named "123"
+
 #### 2024/06/07(#2) [version: v0.0.6]
 1. add mouse wheel support
 

@@ -9,6 +9,9 @@ type MockPageNavigator struct {
 	mock.Mock
 }
 
+func (p *MockPageNavigator) DrawMsg(msg string) error {
+	panic("not implemented") // TODO: Implement
+}
 func (p *MockPageNavigator) Draw() error {
 	panic("not implemented") // TODO: Implement
 }
