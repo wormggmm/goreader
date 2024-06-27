@@ -28,10 +28,11 @@ type PageNavigator interface {
 }
 
 type Pager struct {
-	scrollX  int
-	scrollY  int
-	doc      parse.Cellbuf
-	NotBlank bool
+	scrollX    int
+	scrollY    int
+	doc        parse.Cellbuf
+	NotBlank   bool
+	showYCount int // current page showd lines count, include blank lines
 }
 
 // setDoc sets the pager's cell buffer
@@ -60,7 +61,9 @@ func (p *Pager) Draw() error {
 	width, height := termbox.Size()
 	var centerOffset int
 	screenY := -1
+	p.showYCount = 0
 	for y := 0; y < height; y++ {
+		p.showYCount++
 		screenY++
 		isBlank := true
 		if p.NotBlank {
@@ -135,7 +138,8 @@ func (p *Pager) ScrollRight() {
 // pageDown pans the pager's viewport down by a full page, without exceeding
 // the underlying cell buffer document's boundaries.
 func (p *Pager) PageDown() bool {
-	_, viewHeight := termbox.Size()
+	// _, viewHeight := termbox.Size()
+	viewHeight := p.showYCount
 	if p.scrollY < p.MaxScrollY() {
 		p.scrollY += viewHeight
 		return true

@@ -160,28 +160,28 @@ func initKeyHook(a *app) chan hook.Event {
 						a.pager.ScrollUp()
 					}
 				}
-
 				a.pager.Draw()
 			case hook.KeyHold:
-				// logger.Info("hookEv:", hookEv, " str:", str)
+				logger.Info("hookEv:", hookEv, " str:", str)
 				switch str {
 				case "ctrl":
 					a.ctrlHood = true
-					a.ctrlInput = ""
 					logger.Info("ctrl hold")
 				case "m", "n":
 					a.markHood = true
 					logger.Info("mark hold")
 				}
 			case hook.KeyUp:
-				// logger.Info("hookEv:", hookEv, " str:", str)
+				logger.Info("hookEv:", hookEv, " str:", str)
 				switch str {
 				case "ctrl":
 					a.ctrlHood = false
+					logger.Info("ctrl up:", a.ctrlInput)
 					if a.ctrlInput == "123" {
 						a.globalSwitch = !a.globalSwitch
 						a.pager.DrawMsg(fmt.Sprintf("global hook:%v", a.globalSwitch))
 						logger.Info("switch global hook:", a.globalSwitch)
+						a.ctrlInput = ""
 					}
 				case "m":
 					a.markHood = false
@@ -199,7 +199,7 @@ func initKeyHook(a *app) chan hook.Event {
 					a.markInput += str
 				}
 			case hook.KeyDown:
-				// logger.Info("hookEv:", hookEv, " str:", str)
+				logger.Info("hookEv:", hookEv, " str:", str)
 				if a.ctrlHood {
 					a.ctrlInput += str
 				} else if a.globalSwitch {
@@ -334,7 +334,7 @@ func (a *app) restore(markKey string) {
 func (a *app) record(markKey string) {
 	markFilePath := a.markFilePath()
 	markFile, err := os.OpenFile(markFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	logger.Infof("path: %s,record: chapter=%d, page=%d", markFilePath, a.chapter, a.pager.ScrollY())
+	// logger.Infof("path: %s,record: chapter=%d, page=%d", markFilePath, a.chapter, a.pager.ScrollY())
 	if err != nil {
 		logger.Warning("Failed to open mark file:", err)
 		return
